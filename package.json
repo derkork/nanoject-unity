@@ -1,0 +1,12 @@
+{
+  "name": "com.ancientlightstudios.nanoject",
+  "version": "1.0.0",
+  "displayName": "Nanoject",
+  "description": "A minimal Unity dependency injection solution.",
+  "unity": "2019.1",
+  "author": {
+    "name": "Jan Thom\u00e4, Ancient Light Studios",
+    "email": "jan@ancientlightstudios.com",
+    "url": "https://github.com/derkork/nanoject-unity"
+  }
+}

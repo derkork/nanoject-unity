@@ -1,0 +1,19 @@
+{
+    "name": "AncientLightStudios.Nanoject.EditorTests",
+    "references": [
+        "GUID:c2246ff72eca21f438bb4b5917f9a7f4"
+    ],
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": []
+}
