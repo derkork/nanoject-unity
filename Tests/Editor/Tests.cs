@@ -68,7 +68,7 @@ namespace AncientLightStudios.Nanoject.Tests
         public void ScanningWorks()
         {
             // setup
-            _context.ScanForComponents();
+            _context.DeclareAnnotatedComponents();
             
             // when
             _context.Resolve();

@@ -5,8 +5,6 @@
     using System.Linq;
     using System.Reflection;
 
-    public delegate object Factory(Type type, object[] constructorArguments);
-
 
     public sealed class DependencyContext
     {
@@ -16,17 +14,9 @@
         private readonly Dictionary<Type, Dictionary<string, object>> _unresolvedDependencies =
             new Dictionary<Type, Dictionary<string, object>>();
 
-        private readonly Dictionary<Type, Factory> _factories = new Dictionary<Type, Factory>();
-
         public DependencyContext()
         {
             Declare(this);
-        }
-
-
-        public void DeclareFactory<T>(Factory factory)
-        {
-            _factories[typeof(T)] = factory;
         }
 
         public void DeclareQualified<T>(string qualifier, T instance = default)
@@ -61,6 +51,20 @@
 
             values[qualifier] = instance;
         }
+
+		public bool IsDeclared(Type type, string qualifier = "") {
+			if (_unresolvedDependencies.TryGetValue(type, out var values)) {
+				if (values.ContainsKey(qualifier)) {
+					return true;
+				}
+			}
+			if (_dependencies.TryGetValue(type, out var dependenciesByQualifier)) {
+				if (dependenciesByQualifier.ContainsKey(qualifier)) {
+					return true;
+				}
+			}
+			return false;
+		}
 
 
         public T Get<T>(string qualifier = "")
@@ -119,7 +123,7 @@
                     foreach (var unresolvedQualifier in unresolvedQualifiers)
                     {
                         // if this object has been given in advance, so we just use it
-                        var instance = unresolvedByQualifier[unresolvedQualifier] ?? TryConstruct(unresolvedType);
+                        var instance = unresolvedByQualifier[unresolvedQualifier] ?? TryConstruct(unresolvedType, unresolvedQualifier);
 
                         if (instance == default)
                         {
@@ -197,7 +201,7 @@
             return default;
         }
 
-        private object TryConstruct(Type type)
+        private object TryConstruct(Type type, string qualifier)
         {
             // only public constructors are used for dependency injection
             var constructors = type.GetConstructors();
@@ -210,15 +214,7 @@
                 }
 
                 // all dependencies of this constructor have been resolved,
-                // ReSharper disable once ConvertIfStatementToReturnStatement
-                var factoryType = FindSuperType(_factories.Keys, type);
-
-                if (factoryType != null)
-                {
-                    return _factories[factoryType](type, resolvedDependencies);
-                }
-
-                // no factory, then just invoke the constructor
+                // invoke the constructor
                 return constructor.Invoke(resolvedDependencies);
             }
 

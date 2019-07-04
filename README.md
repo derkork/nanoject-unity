@@ -11,7 +11,7 @@ In order to install this package to your Unity project, open `Packages\manifest.
 ```json
 "dependencies" : {
     ...
-    "com.ancientlightstudios.nanoject": "https://github.com/derkork/nanoject-unity.git"
+    "com.ancientlightstudios.nanoject": "https://github.com/derkork/nanoject-unity.git#2.0.0"
     ...
 }
 ```
