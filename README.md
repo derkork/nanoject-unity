@@ -71,18 +71,18 @@ context.Resolve();
 
 ### Avoid having to declare a bazillion objects?
 
-There is a facility for scanning for objects. Simply put the `DependencyComponent` attribute on your class, to mark it as a component that should be declared automatically. Then scan for components.
+There is a facility for scanning for objects. Simply put the `DependencyComponent` attribute on your class, to mark it as a component that should be declared automatically. Then call `DeclareAnnotatedComponents` which will scan the loaded assemblies for components with this attribute and declare them.
 
 ```csharp
-// declare as component to be scanned
+// annotate as component to be scanned
 [DependencyComponent]
 class MyClass {
     public MyClass(MyOtherClass otherClass) {
     }
 }
 
-// scan instead of calling Declare a thousand times
-context.ScanForComponents();
+// declare all annotated instead of calling Declare a thousand times
+context.DeclareAnnotatedComponents();
 // resolve the context
 context.Resolve();
 ``` 
@@ -100,13 +100,17 @@ class House {
 
 // this is a peasant, he should live in the "hut" house
 class Peasant {
+    public House House {get;}
     public Peasant([Qualifier("hut")] House house) {
+        House = house;
     }
 }
 
 // this is a king, he should live in the "palace" house.
 class King {
+    public House House {get;}
     public King([Qualifier("palace")] House house) {
+        House = house;
     }
 }    
 
@@ -125,9 +129,10 @@ context.Declare<King>();
 context.Resolve();
 
 // now the king has the "palace" house
-var king = context.Get<King>();
+var thePalace = context.Get<King>().House;
+
 // and the peasant has the "hut" house
-var hut = context.Get<Peasant>();
+var theHut = context.Get<Peasant>().House;
 ```
 
 ### Get an object out of the dependency context?
