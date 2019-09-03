@@ -54,7 +54,7 @@ class MyClass {
 }
 ```
 
-### Declare dependencies to objects where I have no control over the lifecycle?
+### Declare dependencies to/of objects where I have no control over the lifecycle?
 Some objects like `MonoBehaviour`s may be created by the runtime and you have no control over their lifecycle. I this case letting Nanoject create the object will not work. Therefore you can declare an actual instance of an object instead of just its type.
 
 ```csharp
@@ -67,6 +67,20 @@ context.Declare<MyClass>();
 
 // will inject myOtherClassInstance into a new instance of MyClass
 context.Resolve();
+```
+
+If this object has dependencies you will need to create a late init method, because constructor injection will not work in this scenario because the object has already been created. A late init method works similar to a constructor, so you declare all dependencies as parameters of the late init method. Finally you add the `[LateInit]` attribute to let `DependencyContext` know that this object needs late initialization:
+
+```csharp
+class MyOtherClass : MonoBehaviour {
+    private PlayerService _playerService;
+    
+    // this method will be called when the context is resolved. You can name it
+    // however you like, just be sure to add the [LateInit] attribute.
+    [LateInit]
+    public void MyLateInitMethod(PlayerService playerService) {
+       _playerService = playerService;
+    }
 ```
 
 ### Avoid having to declare a bazillion objects?
