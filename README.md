@@ -82,6 +82,7 @@ class MyOtherClass : MonoBehaviour {
        _playerService = playerService;
     }
 ```
+If you have a lot of `MonoBehaviours` in your scene that you want to quickly add to a dependency context, have a look at the [nanoject-unity-monobehaviours](https://github.com/derkork/nanoject-unity-monobehaviours/) extension, which can help with this.
 
 ### Avoid having to declare a bazillion objects?
 
