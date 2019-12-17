@@ -1,6 +1,6 @@
 {
     "name": "com.ancientlightstudios.nanoject",
-    "version": "2.0.0",
+    "version": "3.0.0",
     "displayName": "Nanoject",
     "description": "A minimal Unity dependency injection solution.",
     "unity": "2019.1",

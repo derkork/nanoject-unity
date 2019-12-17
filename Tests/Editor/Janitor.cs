@@ -2,17 +2,17 @@ namespace AncientLightStudios.Nanoject.Tests
 {
     using AncientLightStudios.Nanoject;
 
-    public class Warden
+    public class Janitor
     {
         public House House { get; private set; }
         
-        private Warden()
+        private Janitor()
         {
         }
 
-        public static Warden MakeWarden()
+        public static Janitor MakeJanitor()
         {
-            return new Warden();
+            return new Janitor();
         }
 
         [LateInit]

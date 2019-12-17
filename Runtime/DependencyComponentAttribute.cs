@@ -4,6 +4,7 @@ namespace AncientLightStudios.Nanoject
     using JetBrains.Annotations;
 
     [MeansImplicitUse]
+    [AttributeUsage(AttributeTargets.Class)]
     public class DependencyComponentAttribute : Attribute
     {
     }

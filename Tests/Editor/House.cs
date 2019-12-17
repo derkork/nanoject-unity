@@ -1,6 +1,6 @@
 namespace AncientLightStudios.Nanoject.Tests
 {
-    using AncientLightStudios.Nanoject;
+    using Nanoject;
 
     [DependencyComponent]
     public class House

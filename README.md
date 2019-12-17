@@ -1,8 +1,8 @@
 # nanoject
 ## What it is and what it is not
-Nanoject is a **minimal** solution for providing dependency injection for your Unity projects. Minimal really is the keyword here. I deliberately do not call it a framework because it really is just a single class with less than 300 lines of code and some attributes.
+Nanoject is a **minimal** solution for providing dependency injection for your Unity projects. Minimal really is the keyword here. I deliberately do not call it a framework because it really is just a single class to interact with and a few attributes to control the process.
  
- Nanoject allows you to use the dependency injection pattern without creating a ton of cognitive overhead and using arcane magic behind the scenes. It may not have all the features that other frameworks like zenject have, but its workable for many scenarios and it is very easy to reason about what it is doing. 
+ Nanoject allows you to use the dependency injection pattern without creating a ton of cognitive overhead and using arcane magic behind the scenes. It may not have all the features that other frameworks like Zenject have, but its workable for many scenarios and it is very easy to reason about what it is doing. 
 
 ## Installation
 
@@ -10,7 +10,7 @@ In order to install this package to your Unity project, open `Packages\manifest.
 
 ```json
 "dependencies" : {
-    "com.ancientlightstudios.nanoject": "https://github.com/derkork/nanoject-unity.git#2.0.0"
+    "com.ancientlightstudios.nanoject": "https://github.com/derkork/nanoject-unity.git#3.0.0"
 }
 ```
 
@@ -18,7 +18,7 @@ In order to install this package to your Unity project, open `Packages\manifest.
 
 Create a dependency context, declare your dependencies and resolve the context. 
 
-```csharp
+```c#
 // new context
 var context = new DependencyContext();
 
@@ -46,7 +46,7 @@ context.Resolve();
 
 You declare dependencies by putting them as constructor arguments. This allows you to see at a glance what dependencies an object has and also has the advantage that you cannot actually construct an object without supplying all of its dependencies. It also simplifies unit testing.
 
-```csharp
+```c#
 class MyClass {
     // MyClass needs an object of MyOtherClass to be constructed.
     public MyClass(MyOtherClass otherClass) {
@@ -57,7 +57,7 @@ class MyClass {
 ### Declare dependencies to objects where I have no control over the lifecycle?
 Some objects like `MonoBehaviour`s may be created by the runtime and you have no control over their lifecycle. I this case letting Nanoject create the object will not work. Therefore you can declare an actual instance of an object instead of just its type.
 
-```csharp
+```c#
 // MyOtherClass is a MonoBehaviour so grab the instance from Unity
 var myOtherClassInstance = (MyOtherClass) FindObjectOfType(typeof(MyOtherClass));
 
@@ -69,11 +69,13 @@ context.Declare<MyClass>();
 context.Resolve();
 ```
 
-### Avoid having to declare a bazillion objects?
+There is also an [extension](https://github.com/derkork/nanoject-unity-monobehaviours) for working with `MonoBehaviour`s available, if you need to resolve a lot of instances from the current scene. 
+
+### Avoid having to call `Declare` a bazillion times?
 
 There is a facility for scanning for objects. Simply put the `DependencyComponent` attribute on your class, to mark it as a component that should be declared automatically. Then scan for components.
 
-```csharp
+```c#
 // declare as component to be scanned
 [DependencyComponent]
 class MyClass {
@@ -89,20 +91,27 @@ context.Resolve();
 
 ### Have multiple objects of the same class?
 
-You will need to use a qualifier to let Nanoject know which object is required. 
+If you declare multiple objects of the same class Nanoject will not know which one to inject. You can use qualifiers to let Nanoject know what you want: 
 
-```csharp
+```c#
 // this is a house
 class House {
     public House(string name) {
     }
 }
 
+var hut = new House("hut");
+var palace = new House("palace");
+context.DeclareQualified("hut", hut);
+context.DeclareQualified("palace", palace);
+
 // this is a peasant, he should live in the "hut" house
 class Peasant {
     public Peasant([Qualifier("hut")] House house) {
     }
 }
+context.Declare<Peasant>();
+
 
 // this is a king, he should live in the "palace" house.
 class King {
@@ -110,31 +119,57 @@ class King {
     }
 }    
 
-var palace = new House("Palace");
-// declare the palace under the "palace" qualifier
-context.Declare(palace, "palace"); 
-
-var hut = new House("hut");
-// declare the hut under the "hut" qualifier
-context.Declare(hut, "hut");
-
-// now declare the peasant and the king
-context.Declare<Peasant>();
 context.Declare<King>();
-
 context.Resolve();
 
 // now the king has the "palace" house
 var king = context.Get<King>();
+// assert king.house == palace;
+
 // and the peasant has the "hut" house
-var hut = context.Get<Peasant>();
+var peasant = context.Get<Peasant>();
+// assert peasant.house == hut;
+```
+Starting with version 3.0.0 you can now also inject all declared components of a certain type. To do this, simply inject an `IReadOnlyCollection<InterestingType>`. For example:
+
+```c#
+class Janitor {
+    public Janitor(IReadOnlyCollection<House> allHouses) {
+    }
+}
+
+context.Declare<Janitor>();
+context.Resolve();
+
+// now the Janitor instance has been given a list of all houses 
+// known in DependencyContext. If no houses are known, then the list 
+// will simply be empty.
+```
+
+It is also possible to combine `[Qualifier]` with injected lists:
+
+```c#
+class TaxCollector {
+    public TaxCollector(
+        [Qualifier("palace")] IReadOnlyCollection<House> palaces,
+        [Qualifier("hut")] IReadOnlyCollection<House> huts) {
+    }
+}
+
+context.Declare<TaxCollector>();
+context.Resolve();
+
+// now the TaxCollector instance will get all Houses that have
+// been declared with a "palace" qualifier into the palaces collection
+// and all that have been declared with a "hut" qualifier into the hut 
+// collection.
 ```
 
 ### Get an object out of the dependency context?
 
 You should avoid this if you can but especially in bootstrapping situations you sometimes need it.  
 
-```csharp
+```c#
 // make sure the context is resolved
 context.Resolve();
 
@@ -143,7 +178,7 @@ var myClassInstance = context.Get<MyClass>();
 
 In addition there is also a function that lets you get all objects of a certain type. 
 
-```csharp
+```c#
 // get all houses
 var houses = context.GetAll<House>();
 ```
