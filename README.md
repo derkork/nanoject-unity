@@ -69,22 +69,36 @@ context.Declare<MyClass>();
 context.Resolve();
 ```
 
-There is also an [extension](https://github.com/derkork/nanoject-unity-monobehaviours) for working with `MonoBehaviour`s available, if you need to resolve a lot of instances from the current scene. 
-
-### Avoid having to call `Declare` a bazillion times?
-
-There is a facility for scanning for objects. Simply put the `DependencyComponent` attribute on your class, to mark it as a component that should be declared automatically. Then scan for components.
+If this object has dependencies you will need to create a late init method, because constructor injection will not work in this scenario because the object has already been created. A late init method works similar to a constructor, so you declare all dependencies as parameters of the late init method. Finally you add the `[LateInit]` attribute to let `DependencyContext` know that this object needs late initialization:
 
 ```c#
-// declare as component to be scanned
+class MyOtherClass : MonoBehaviour {
+    private PlayerService _playerService;
+    
+    // this method will be called when the context is resolved. You can name it
+    // however you like, just be sure to add the [LateInit] attribute.
+    [LateInit]
+    public void MyLateInitMethod(PlayerService playerService) {
+       _playerService = playerService;
+    }
+```
+
+If you have a lot of `MonoBehaviours` in your scene that you want to quickly add to a dependency context, have a look at the [nanoject-unity-monobehaviours](https://github.com/derkork/nanoject-unity-monobehaviours/) extension, which can help with this.
+
+### Avoid having to declare a bazillion objects?
+
+There is a facility for scanning for objects. Simply put the `DependencyComponent` attribute on your class, to mark it as a component that should be declared automatically. Then call `DeclareAnnotatedComponents` which will scan the loaded assemblies for components with this attribute and declare them.
+
+```c#
+// annotate as component to be scanned
 [DependencyComponent]
 class MyClass {
     public MyClass(MyOtherClass otherClass) {
     }
 }
 
-// scan instead of calling Declare a thousand times
-context.ScanForComponents();
+// declare all annotated instead of calling Declare a thousand times
+context.DeclareAnnotatedComponents();
 // resolve the context
 context.Resolve();
 ``` 
